@@ -1,0 +1,8 @@
+streamlit
+numpy
+joblib
+opencv-python-headless
+scikit-image
+# IMPORTANT : remplace la ligne suivante par ta version exacte (commande : pip show scikit-learn)
+# exemple : scikit-learn==1.5.2
+scikit-learn

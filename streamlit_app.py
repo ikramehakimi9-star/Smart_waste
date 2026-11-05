@@ -9,92 +9,120 @@ from skimage.feature import hog
 # =====================================================
 # 1. CONFIGURATION DE LA PAGE
 # =====================================================
-st.set_page_config(page_title="Smart Waste", page_icon="♻️", layout="centered")
+st.set_page_config(
+    page_title="Smart Waste",
+    page_icon="♻️",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 # =====================================================
 # 2. DESIGN (CSS)
 # =====================================================
-st.markdown("""
+CSS = """
 <style>
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-.block-container {padding-top: 1.5rem; padding-bottom: 3rem; max-width: 720px;}
+header[data-testid="stHeader"] {background: transparent;}
+.block-container {padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1100px;}
 
-/* --- Bandeau du haut --- */
+/* ---------- Bandeau ---------- */
 .hero {
     background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
     border-radius: 22px;
-    padding: 30px 22px;
+    padding: 28px 24px;
     text-align: center;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     box-shadow: 0 8px 24px rgba(22, 163, 74, 0.25);
 }
-.hero-titre {color: #ffffff; font-size: 2.1rem; font-weight: 800; margin: 0;}
-.hero-texte {color: #ecfdf5; font-size: 1.05rem; margin: 8px 0 0 0;}
+.hero-titre {color: #fff; font-size: 2.2rem; font-weight: 800; margin: 0;}
+.hero-texte {color: #ecfdf5; font-size: 1.05rem; margin: 6px 0 0 0;}
 
-/* --- Les 3 étapes --- */
-.etape {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 16px 10px;
-    text-align: center;
-    color: #1f2937;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
-    height: 100%;
-}
-.etape-emoji {font-size: 2rem;}
-.etape-titre {font-weight: 700; margin-top: 4px;}
-.etape-texte {font-size: 0.85rem; color: #6b7280;}
+/* ---------- Onglets ---------- */
+button[data-baseweb="tab"] {font-size: 1rem; font-weight: 600;}
 
-/* --- Carte résultat --- */
-.resultat {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 24px 22px;
-    margin-top: 18px;
-    color: #1f2937;
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.10);
+/* ---------- Titres de zone ---------- */
+.zone-titre {
+    font-size: 1.15rem; font-weight: 700; color: #14532d;
+    margin: 6px 0 10px 0;
 }
-.res-emoji {font-size: 3rem; line-height: 1;}
-.res-phrase {font-size: 1rem; color: #6b7280; margin-top: 8px;}
-.res-classe {font-size: 2.2rem; font-weight: 800; margin: 2px 0 10px 0;}
+.zone-num {
+    display: inline-block; background: #16a34a; color: #fff;
+    width: 26px; height: 26px; line-height: 26px; text-align: center;
+    border-radius: 50%; font-size: 0.9rem; margin-right: 8px;
+}
+
+/* ---------- Carte générique ---------- */
+.carte {
+    background: #fff; border-radius: 18px; padding: 18px 20px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.07); color: #1f2937;
+}
+
+/* ---------- Zone des consignes (conseils photo) ---------- */
+.consignes {
+    background: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 16px;
+    padding: 14px 18px; margin-top: 14px; color: #14532d;
+}
+.consignes-titre {font-weight: 700; margin-bottom: 6px;}
+.consignes ul {margin: 0; padding-left: 20px;}
+.consignes li {margin: 3px 0; font-size: 0.93rem;}
+
+/* ---------- Zone d'attente (avant la photo) ---------- */
+.attente {text-align: center; padding: 26px 18px;}
+.attente-emoji {font-size: 3.2rem; line-height: 1;}
+.attente-titre {font-weight: 700; font-size: 1.15rem; margin: 8px 0 14px 0;}
+.etape {display: flex; align-items: center; text-align: left; margin: 10px 0;}
+.etape-emoji {
+    font-size: 1.6rem; background: #f0fdf4; border-radius: 12px;
+    width: 46px; height: 46px; display: flex; align-items: center;
+    justify-content: center; margin-right: 12px; flex-shrink: 0;
+}
+.etape-titre {font-weight: 700;}
+.etape-texte {font-size: 0.87rem; color: #6b7280;}
+
+/* ---------- Carte résultat ---------- */
+.res-haut {display: flex; align-items: center;}
+.res-emoji {font-size: 3.4rem; line-height: 1; margin-right: 16px;}
+.res-phrase {font-size: 0.95rem; color: #6b7280;}
+.res-classe {font-size: 2rem; font-weight: 800; margin: 0 0 6px 0; line-height: 1.1;}
 .res-badge {
-    display: inline-block;
-    color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 999px;
+    display: inline-block; color: #fff; font-size: 0.82rem; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
 }
 .res-bloc {
-    background: #f9fafb;
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-top: 14px;
-    font-size: 0.97rem;
+    background: #f9fafb; border-radius: 14px; padding: 12px 14px;
+    margin-top: 12px; font-size: 0.96rem;
 }
 .res-bloc b {color: #111827;}
+.res-alerte {background: #fffbeb; border: 1px solid #fde68a;}
 
-/* --- Barres de probabilités --- */
-.ligne {display: flex; align-items: center; margin: 8px 0;}
-.ligne-nom {width: 130px; font-size: 0.92rem; color: #1f2937;}
-.piste {flex: 1; background: #e5e7eb; border-radius: 999px; height: 12px; overflow: hidden;}
-.remplissage {height: 12px; border-radius: 999px;}
-.ligne-pct {width: 56px; text-align: right; font-size: 0.9rem; color: #4b5563;}
-.titre-section {font-weight: 700; color: #1f2937; margin-top: 22px; margin-bottom: 4px;}
+/* ---------- Barres de probabilités ---------- */
+.ligne {display: flex; align-items: center; margin: 7px 0;}
+.ligne-nom {width: 150px; font-size: 0.9rem; color: #1f2937;}
+.piste {flex: 1; background: #e5e7eb; border-radius: 999px; height: 11px; overflow: hidden;}
+.remplissage {height: 11px; border-radius: 999px;}
+.ligne-pct {width: 56px; text-align: right; font-size: 0.88rem; color: #4b5563;}
 
-/* --- Photo arrondie --- */
-[data-testid="stImage"] img {border-radius: 18px;}
+/* ---------- Guide des catégories ---------- */
+.cat {border-top: 6px solid #16a34a; height: 100%;}
+.cat-emoji {font-size: 2.2rem;}
+.cat-nom {font-weight: 800; font-size: 1.15rem; margin: 2px 0 8px 0;}
+.cat-texte {font-size: 0.93rem; margin-bottom: 8px;}
+.cat-astuce {font-size: 0.85rem; color: #6b7280;}
 
-/* --- Pied de page --- */
-.pied {text-align: center; color: #9ca3af; font-size: 0.8rem; margin-top: 36px;}
+/* ---------- Photo arrondie ---------- */
+[data-testid="stImage"] img {border-radius: 16px;}
+
+/* ---------- Pied de page ---------- */
+.pied {text-align: center; color: #9ca3af; font-size: 0.8rem; margin-top: 30px;}
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(CSS, unsafe_allow_html=True)
 
 # =====================================================
 # 3. INFORMATIONS SUR CHAQUE CLASSE
 # =====================================================
-infos = {
+INFOS = {
     "cardboard": {
         "emoji": "📦", "nom": "Carton", "couleur": "#b45309",
         "conseil": "Aplatis-le, puis dépose-le avec les papiers et cartons à recycler.",
@@ -127,20 +155,27 @@ infos = {
     },
 }
 
-# =====================================================
-# 4. CHARGEMENT DU MODÈLE (une seule fois par session)
-# =====================================================
-if "paquet" not in st.session_state:
-    dossier = os.path.dirname(os.path.abspath(__file__))
-    st.session_state["paquet"] = joblib.load(os.path.join(dossier, "modele_hog_couleur_svm.joblib"))
+CONSIGNES_PHOTO = [
+    "Un seul objet à la fois",
+    "Fond simple et uni",
+    "Bien éclairé, objet net",
+    "Objet assez proche de la caméra",
+]
 
-paquet = st.session_state["paquet"]
+# =====================================================
+# 4. CHARGEMENT DU MODÈLE (mis en cache)
+# =====================================================
+@st.cache_resource(show_spinner="Chargement du modèle...")
+def charger_modele():
+    dossier = os.path.dirname(os.path.abspath(__file__))
+    return joblib.load(os.path.join(dossier, "modele_hog_couleur_svm.joblib"))
+
+
+paquet = charger_modele()
 scaler = paquet["scaler"]
 pca = paquet["pca"]
 model = paquet["model"]
-CLASSES = []
-for nom_classe in paquet["classes"]:
-    CLASSES.append(str(nom_classe))
+CLASSES = [str(c) for c in paquet["classes"]]
 
 IMG_SIZE = tuple(paquet["img_size"])
 HOG_ORIENTATIONS = paquet["hog_orientations"]
@@ -152,180 +187,264 @@ BINS_V = paquet["bins_v"]
 
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
-# Compteurs de la session (pour la barre latérale)
+# État de la session
 if "compteurs" not in st.session_state:
-    st.session_state["compteurs"] = {}
-    for c in CLASSES:
-        st.session_state["compteurs"][c] = 0
+    st.session_state["compteurs"] = {c: 0 for c in CLASSES}
 if "derniere_photo" not in st.session_state:
     st.session_state["derniere_photo"] = ""
 
-# =====================================================
-# 5. BARRE LATÉRALE (aide)
-# =====================================================
-st.sidebar.markdown("## ♻️ Smart Waste")
-st.sidebar.markdown("**Comment ça marche ?**")
-st.sidebar.markdown("1. Donne une photo de ton déchet\n2. Je l'analyse en quelques secondes\n3. Je te dis où le jeter")
-
-st.sidebar.markdown("**📸 Pour une bonne photo**")
-st.sidebar.markdown("- Un seul objet à la fois\n- Fond simple et uni\n- Bien éclairé, objet net\n- Objet assez proche")
-
-st.sidebar.markdown("**Je reconnais 6 catégories**")
-liste_categories = ""
-for c in CLASSES:
-    liste_categories = liste_categories + "- " + infos[c]["emoji"] + " " + infos[c]["nom"] + "\n"
-st.sidebar.markdown(liste_categories)
 
 # =====================================================
-# 6. EN-TÊTE
+# 5. FONCTIONS (analyse)
 # =====================================================
-st.markdown('<div class="hero"><p class="hero-titre">♻️ Smart Waste</p><p class="hero-texte">Prends ton déchet en photo, je t\'aide à bien le trier.</p></div>', unsafe_allow_html=True)
+def predire(img_bgr):
+    """Retourne le vecteur de probabilités pour une image BGR."""
+    img = cv2.resize(img_bgr, IMG_SIZE, interpolation=cv2.INTER_AREA)
+
+    # Forme (HOG)
+    gris = clahe.apply(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    vecteur_hog = hog(gris, orientations=HOG_ORIENTATIONS,
+                      pixels_per_cell=HOG_PIXELS_PER_CELL,
+                      cells_per_block=HOG_CELLS_PER_BLOCK,
+                      block_norm="L2-Hys")
+
+    # Couleur (HSV)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    hist_h = cv2.calcHist([hsv], [0], None, [BINS_H], [0, 180]).flatten()
+    hist_s = cv2.calcHist([hsv], [1], None, [BINS_S], [0, 256]).flatten()
+    hist_v = cv2.calcHist([hsv], [2], None, [BINS_V], [0, 256]).flatten()
+    hist_h = hist_h / hist_h.sum()
+    hist_s = hist_s / hist_s.sum()
+    hist_v = hist_v / hist_v.sum()
+
+    # Scaler + PCA + SVM
+    vecteur = np.concatenate([vecteur_hog, hist_h, hist_s, hist_v]).reshape(1, -1)
+    vecteur = scaler.transform(vecteur)
+    vecteur = pca.transform(vecteur)
+    return model.predict_proba(vecteur)[0]
+
 
 # =====================================================
-# 7. L'UTILISATEUR DONNE SA PHOTO
+# 6. FONCTIONS (affichage)
 # =====================================================
-choix = st.radio("Comment veux-tu donner ta photo ?",
-                 ["📁 Importer une photo", "📸 Prendre une photo"], horizontal=True)
+def titre_zone(numero, texte):
+    st.markdown(
+        f'<div class="zone-titre"><span class="zone-num">{numero}</span>{texte}</div>',
+        unsafe_allow_html=True,
+    )
 
-if choix == "📁 Importer une photo":
-    fichier = st.file_uploader("Choisis une image (JPG ou PNG)", type=["jpg", "jpeg", "png"])
-else:
-    fichier = st.camera_input("Place ton déchet devant la caméra")
+
+def afficher_consignes():
+    items = "".join(f"<li>{c}</li>" for c in CONSIGNES_PHOTO)
+    st.markdown(
+        f'<div class="consignes"><div class="consignes-titre">📸 Pour une bonne photo</div>'
+        f"<ul>{items}</ul></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def afficher_attente():
+    st.markdown("""
+    <div class="carte attente">
+        <div class="attente-emoji">🕒</div>
+        <div class="attente-titre">En attente de ta photo</div>
+        <div class="etape"><div class="etape-emoji">📸</div><div>
+            <div class="etape-titre">1. Photo</div>
+            <div class="etape-texte">Prends ou importe une image de ton déchet</div></div></div>
+        <div class="etape"><div class="etape-emoji">🔍</div><div>
+            <div class="etape-titre">2. Analyse</div>
+            <div class="etape-texte">Je regarde la forme et la couleur</div></div></div>
+        <div class="etape"><div class="etape-emoji">✅</div><div>
+            <div class="etape-titre">3. Résultat</div>
+            <div class="etape-texte">Tu sais où le jeter</div></div></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def niveau_confiance(confiance):
+    if confiance >= 75:
+        return "J'en suis presque certain, c'est du :", f"Très sûr · {confiance} %", "#16a34a"
+    if confiance >= 50:
+        return "Je pense que c'est du :", f"Assez sûr · {confiance} %", "#f59e0b"
+    return "Hmm, je ne suis pas sûr. Ma meilleure piste :", f"Peu sûr · {confiance} %", "#dc2626"
+
+
+def afficher_resultat(proba):
+    ordre = np.argsort(proba)[::-1]
+    premier = CLASSES[int(ordre[0])]
+    second = CLASSES[int(ordre[1])]
+    confiance = round(float(proba[ordre[0]]) * 100, 1)
+    confiance2 = round(float(proba[ordre[1]]) * 100, 1)
+    info = INFOS[premier]
+    couleur = info["couleur"]
+    phrase, texte_badge, couleur_badge = niveau_confiance(confiance)
+
+    html = f'<div class="carte" style="border-left: 8px solid {couleur};">'
+    html += (
+        f'<div class="res-haut"><div class="res-emoji">{info["emoji"]}</div><div>'
+        f'<div class="res-phrase">{phrase}</div>'
+        f'<div class="res-classe" style="color:{couleur};">{info["nom"]}</div>'
+        f'<span class="res-badge" style="background:{couleur_badge};">{texte_badge}</span>'
+        f"</div></div>"
+    )
+    if confiance < 50:
+        info2 = INFOS[second]
+        html += (
+            f'<div class="res-bloc res-alerte">🤔 <b>Autre possibilité :</b> '
+            f'{info2["emoji"]} {info2["nom"]} ({confiance2} %).<br>'
+            f"Essaie une photo plus nette, avec un seul objet sur un fond simple.</div>"
+        )
+    html += f'<div class="res-bloc">🗂️ <b>Où le jeter :</b> {info["conseil"]}</div>'
+    html += f'<div class="res-bloc">💡 <b>Le savais-tu ?</b> {info["astuce"]}</div>'
+    html += "</div>"
+    st.markdown(html, unsafe_allow_html=True)
+
+    # Détail des probabilités
+    st.markdown('<div class="zone-titre" style="margin-top:18px;">📊 Ce que j\'ai hésité à répondre</div>',
+                unsafe_allow_html=True)
+    barres = '<div class="carte">'
+    for k in ordre:
+        nom_k = CLASSES[int(k)]
+        pct = round(float(proba[k]) * 100, 1)
+        largeur = max(pct, 2)
+        barres += (
+            f'<div class="ligne"><div class="ligne-nom">{INFOS[nom_k]["emoji"]} {INFOS[nom_k]["nom"]}</div>'
+            f'<div class="piste"><div class="remplissage" style="width:{largeur}%; '
+            f'background:{INFOS[nom_k]["couleur"]};"></div></div>'
+            f'<div class="ligne-pct">{pct} %</div></div>'
+        )
+    barres += "</div>"
+    st.markdown(barres, unsafe_allow_html=True)
+    return premier
+
 
 # =====================================================
-# 8. PAS ENCORE DE PHOTO : message d'accueil
+# 7. BARRE LATÉRALE : SESSION
 # =====================================================
-if fichier is None:
-    col1, col2, col3 = st.columns(3)
-    col1.markdown('<div class="etape"><div class="etape-emoji">📸</div><div class="etape-titre">1. Photo</div><div class="etape-texte">Prends ou importe une image</div></div>', unsafe_allow_html=True)
-    col2.markdown('<div class="etape"><div class="etape-emoji">🔍</div><div class="etape-titre">2. Analyse</div><div class="etape-texte">Je regarde la forme et la couleur</div></div>', unsafe_allow_html=True)
-    col3.markdown('<div class="etape"><div class="etape-emoji">✅</div><div class="etape-titre">3. Résultat</div><div class="etape-texte">Tu sais où le jeter</div></div>', unsafe_allow_html=True)
-
-# =====================================================
-# 9. UNE PHOTO EST DONNÉE : PRÉDICTION
-# =====================================================
-else:
-    octets = fichier.getvalue()
-    tableau = np.frombuffer(octets, np.uint8)
-    img = cv2.imdecode(tableau, cv2.IMREAD_COLOR)
-
-    if img is None:
-        st.error("Oups, je n'arrive pas à lire cette image. Essaie avec une autre photo.")
+with st.sidebar:
+    st.markdown("## ♻️ Smart Waste")
+    st.markdown("**📈 Ma session**")
+    total = sum(st.session_state["compteurs"].values())
+    if total == 0:
+        st.caption("Aucun déchet trié pour l'instant.")
     else:
-        # --- Afficher la photo (au milieu) ---
-        gauche, milieu, droite = st.columns([1, 3, 1])
-        milieu.image(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        st.metric("Déchets triés", total)
+        for c in CLASSES:
+            n = st.session_state["compteurs"][c]
+            if n > 0:
+                st.markdown(f"- {INFOS[c]['emoji']} {INFOS[c]['nom']} : **{n}**")
+        if st.button("Réinitialiser", use_container_width=True):
+            st.session_state["compteurs"] = {c: 0 for c in CLASSES}
+            st.session_state["derniere_photo"] = ""
+            st.rerun()
 
-        # --- Analyse ---
-        with st.spinner("Je regarde ton déchet... 🔍"):
-            img = cv2.resize(img, IMG_SIZE, interpolation=cv2.INTER_AREA)
+# =====================================================
+# 8. EN-TÊTE
+# =====================================================
+st.markdown(
+    '<div class="hero"><p class="hero-titre">♻️ Smart Waste</p>'
+    '<p class="hero-texte">Prends ton déchet en photo, je t\'aide à bien le trier.</p></div>',
+    unsafe_allow_html=True,
+)
 
-            # Forme (HOG)
-            gris = clahe.apply(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
-            vecteur_hog = hog(gris, orientations=HOG_ORIENTATIONS,
-                              pixels_per_cell=HOG_PIXELS_PER_CELL,
-                              cells_per_block=HOG_CELLS_PER_BLOCK,
-                              block_norm="L2-Hys")
+onglet_trier, onglet_guide, onglet_apropos = st.tabs(
+    ["♻️ Trier un déchet", "📚 Guide du tri", "ℹ️ À propos"]
+)
 
-            # Couleur (HSV)
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            hist_h = cv2.calcHist([hsv], [0], None, [BINS_H], [0, 180]).flatten()
-            hist_s = cv2.calcHist([hsv], [1], None, [BINS_S], [0, 256]).flatten()
-            hist_v = cv2.calcHist([hsv], [2], None, [BINS_V], [0, 256]).flatten()
-            hist_h = hist_h / hist_h.sum()
-            hist_s = hist_s / hist_s.sum()
-            hist_v = hist_v / hist_v.sum()
+# =====================================================
+# 9. ONGLET 1 : TRIER (2 colonnes : photo | résultat)
+# =====================================================
+with onglet_trier:
+    col_gauche, col_droite = st.columns(2, gap="large")
 
-            # Scaler + PCA + SVM
-            vecteur = np.concatenate([vecteur_hog, hist_h, hist_s, hist_v]).reshape(1, -1)
-            vecteur = scaler.transform(vecteur)
-            vecteur = pca.transform(vecteur)
-            proba = model.predict_proba(vecteur)[0]
-
-        # --- Classement des classes, de la plus probable à la moins probable ---
-        ordre = np.argsort(proba)[::-1]
-        premier = CLASSES[int(ordre[0])]
-        second = CLASSES[int(ordre[1])]
-        confiance = round(float(proba[ordre[0]]) * 100, 1)
-        confiance2 = round(float(proba[ordre[1]]) * 100, 1)
-
-        info = infos[premier]
-        couleur = info["couleur"]
-
-        # --- Compter la photo une seule fois (même si la page se recharge) ---
-        signature = hashlib.md5(octets).hexdigest()
-        if signature != st.session_state["derniere_photo"]:
-            st.session_state["derniere_photo"] = signature
-            st.session_state["compteurs"][premier] = st.session_state["compteurs"][premier] + 1
-
-        # =================================================
-        # 10. RÉSULTAT (message adapté à la confiance)
-        # =================================================
-        if confiance >= 75:
-            phrase = "J'en suis presque certain, c'est du :"
-            texte_badge = "Très sûr · " + str(confiance) + " %"
-            couleur_badge = "#16a34a"
-        elif confiance >= 50:
-            phrase = "Je pense que c'est du :"
-            texte_badge = "Assez sûr · " + str(confiance) + " %"
-            couleur_badge = "#f59e0b"
+    # ---- Colonne gauche : la photo + les consignes ----
+    with col_gauche:
+        titre_zone(1, "Ta photo")
+        choix = st.radio(
+            "Comment veux-tu donner ta photo ?",
+            ["📁 Importer une photo", "📸 Prendre une photo"],
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+        if choix == "📁 Importer une photo":
+            fichier = st.file_uploader("Choisis une image (JPG ou PNG)", type=["jpg", "jpeg", "png"])
         else:
-            phrase = "Hmm, je ne suis pas sûr. Ma meilleure piste :"
-            texte_badge = "Peu sûr · " + str(confiance) + " %"
-            couleur_badge = "#dc2626"
+            fichier = st.camera_input("Place ton déchet devant la caméra")
 
-        carte = '<div class="resultat" style="border-left: 8px solid ' + couleur + ';">'
-        carte = carte + '<div class="res-emoji">' + info["emoji"] + '</div>'
-        carte = carte + '<div class="res-phrase">' + phrase + '</div>'
-        carte = carte + '<div class="res-classe" style="color:' + couleur + ';">' + info["nom"] + '</div>'
-        carte = carte + '<span class="res-badge" style="background:' + couleur_badge + ';">' + texte_badge + '</span>'
+        img = None
+        octets = None
+        if fichier is not None:
+            octets = fichier.getvalue()
+            img = cv2.imdecode(np.frombuffer(octets, np.uint8), cv2.IMREAD_COLOR)
+            if img is None:
+                st.error("Oups, je n'arrive pas à lire cette image. Essaie avec une autre photo.")
+            elif choix == "📁 Importer une photo":
+                st.image(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), use_container_width=True)
 
-        if confiance < 50:
-            info2 = infos[second]
-            carte = carte + '<div class="res-bloc">🤔 <b>Autre possibilité :</b> ' + info2["emoji"] + ' ' + info2["nom"] + ' (' + str(confiance2) + ' %).<br>Essaie une photo plus nette, avec un seul objet sur un fond simple.</div>'
+        afficher_consignes()
 
-        carte = carte + '<div class="res-bloc">🗂️ <b>Où le jeter :</b> ' + info["conseil"] + '</div>'
-        carte = carte + '<div class="res-bloc">💡 <b>Le savais-tu ?</b> ' + info["astuce"] + '</div>'
-        carte = carte + '</div>'
-        st.markdown(carte, unsafe_allow_html=True)
+    # ---- Colonne droite : le résultat ----
+    with col_droite:
+        titre_zone(2, "Résultat")
+        if img is None:
+            afficher_attente()
+        else:
+            with st.spinner("Je regarde ton déchet... 🔍"):
+                proba = predire(img)
+            premier = afficher_resultat(proba)
 
-        # =================================================
-        # 11. DÉTAIL DES PROBABILITÉS (barres)
-        # =================================================
-        st.markdown('<div class="titre-section">📊 Ce que j\'ai hésité à répondre</div>', unsafe_allow_html=True)
-
-        barres = ""
-        for k in ordre:
-            nom_k = CLASSES[int(k)]
-            pct = round(float(proba[k]) * 100, 1)
-            largeur = max(pct, 2)
-            barres = barres + '<div class="ligne">'
-            barres = barres + '<div class="ligne-nom">' + infos[nom_k]["emoji"] + ' ' + infos[nom_k]["nom"] + '</div>'
-            barres = barres + '<div class="piste"><div class="remplissage" style="width:' + str(largeur) + '%; background:' + infos[nom_k]["couleur"] + ';"></div></div>'
-            barres = barres + '<div class="ligne-pct">' + str(pct) + ' %</div>'
-            barres = barres + '</div>'
-        st.markdown(barres, unsafe_allow_html=True)
+            # Compter la photo une seule fois (même si la page se recharge)
+            signature = hashlib.md5(octets).hexdigest()
+            if signature != st.session_state["derniere_photo"]:
+                st.session_state["derniere_photo"] = signature
+                st.session_state["compteurs"][premier] += 1
 
 # =====================================================
-# 12. BARRE LATÉRALE : COMPTEUR DE LA SESSION
+# 10. ONGLET 2 : GUIDE DU TRI
 # =====================================================
-total = 0
-for c in CLASSES:
-    total = total + st.session_state["compteurs"][c]
+with onglet_guide:
+    st.markdown('<div class="zone-titre">Les 6 catégories que je reconnais</div>', unsafe_allow_html=True)
+    cles = list(INFOS.keys())
+    for debut in range(0, len(cles), 3):
+        colonnes = st.columns(3, gap="medium")
+        for col, cle in zip(colonnes, cles[debut:debut + 3]):
+            i = INFOS[cle]
+            col.markdown(
+                f'<div class="carte cat" style="border-top-color:{i["couleur"]};">'
+                f'<div class="cat-emoji">{i["emoji"]}</div>'
+                f'<div class="cat-nom" style="color:{i["couleur"]};">{i["nom"]}</div>'
+                f'<div class="cat-texte">🗂️ {i["conseil"]}</div>'
+                f'<div class="cat-astuce">💡 {i["astuce"]}</div></div>',
+                unsafe_allow_html=True,
+            )
+        st.write("")
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("**📈 Ma session**")
-if total == 0:
-    st.sidebar.markdown("Aucun déchet trié pour l'instant.")
-else:
-    resume = "Déchets triés : **" + str(total) + "**\n"
-    for c in CLASSES:
-        nombre = st.session_state["compteurs"][c]
-        if nombre > 0:
-            resume = resume + "- " + infos[c]["emoji"] + " " + infos[c]["nom"] + " : " + str(nombre) + "\n"
-    st.sidebar.markdown(resume)
+# =====================================================
+# 11. ONGLET 3 : À PROPOS
+# =====================================================
+with onglet_apropos:
+    st.markdown('<div class="zone-titre">Comment ça marche ?</div>', unsafe_allow_html=True)
+    st.markdown("""
+<div class="carte">
+<b>1. Prétraitement</b> : l'image est redimensionnée, puis le contraste est amélioré (CLAHE).<br>
+<b>2. Caractéristiques</b> : la <b>forme</b> est décrite par HOG, la <b>couleur</b> par des histogrammes HSV.<br>
+<b>3. Classification</b> : normalisation (scaler), réduction de dimension (PCA), puis classifieur <b>SVM</b>
+qui donne une probabilité pour chaque catégorie.
+</div>
+""", unsafe_allow_html=True)
+    st.markdown('<div class="zone-titre" style="margin-top:18px;">Limites</div>', unsafe_allow_html=True)
+    st.markdown("""
+<div class="carte">
+Le modèle peut se tromper, surtout avec plusieurs objets, un fond chargé, une photo floue ou sombre.
+En cas de doute, vérifie le symbole de recyclage sur l'emballage.
+</div>
+""", unsafe_allow_html=True)
 
 # =====================================================
-# 13. PIED DE PAGE
+# 12. PIED DE PAGE
 # =====================================================
-st.markdown('<div class="pied">Smart Waste · Modèle HOG + couleur + SVM · Je peux me tromper, en cas de doute vérifie l\'emballage.</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="pied">Smart Waste · Modèle HOG + couleur + SVM · '
+    "Je peux me tromper, en cas de doute vérifie l'emballage.</div>",
+    unsafe_allow_html=True,
+)

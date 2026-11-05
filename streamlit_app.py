@@ -13,7 +13,6 @@ st.set_page_config(
     page_title="Smart Waste",
     page_icon="♻️",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 # =====================================================
@@ -21,6 +20,18 @@ st.set_page_config(
 # =====================================================
 CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+/* ---------- Une seule police pour toute la page ---------- */
+html, body, .stApp, .stMarkdown, .stMarkdown *, [data-testid="stMarkdownContainer"] *,
+button, label, input, textarea, [data-baseweb="tab"] *, [data-testid="stMetric"] * {
+    font-family: 'Poppins', 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
+
+/* ---------- Plus de barre latérale ---------- */
+[data-testid="stSidebar"], [data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] {display: none !important;}
+
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header[data-testid="stHeader"] {background: transparent;}
@@ -35,11 +46,31 @@ header[data-testid="stHeader"] {background: transparent;}
     margin-bottom: 18px;
     box-shadow: 0 8px 24px rgba(22, 163, 74, 0.25);
 }
-.hero-titre {color: #fff; font-size: 2.2rem; font-weight: 800; margin: 0;}
+.hero-titre {color: #fff; font-size: 2rem; font-weight: 800; margin: 0;}
 .hero-texte {color: #ecfdf5; font-size: 1.05rem; margin: 6px 0 0 0;}
 
-/* ---------- Onglets ---------- */
-button[data-baseweb="tab"] {font-size: 1rem; font-weight: 600;}
+/* ---------- Barre de navigation (onglets) ---------- */
+div[data-baseweb="tab-list"] {
+    gap: 16px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 8px 12px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+    justify-content: center;
+    margin-bottom: 18px;
+}
+button[data-baseweb="tab"] {
+    height: auto;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4b5563;
+    transition: background 0.15s;
+}
+button[data-baseweb="tab"]:hover {background: #f0fdf4; color: #166534;}
+button[data-baseweb="tab"][aria-selected="true"] {background: #dcfce7; color: #166534;}
+div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {display: none;}
 
 /* ---------- Titres de zone ---------- */
 .zone-titre {
@@ -65,7 +96,7 @@ button[data-baseweb="tab"] {font-size: 1rem; font-weight: 600;}
 }
 .consignes-titre {font-weight: 700; margin-bottom: 6px;}
 .consignes ul {margin: 0; padding-left: 20px;}
-.consignes li {margin: 3px 0; font-size: 0.93rem;}
+.consignes li {margin: 3px 0; font-size: 0.95rem;}
 
 /* ---------- Zone d'attente (avant la photo) ---------- */
 .attente {text-align: center; padding: 26px 18px;}
@@ -77,21 +108,21 @@ button[data-baseweb="tab"] {font-size: 1rem; font-weight: 600;}
     width: 46px; height: 46px; display: flex; align-items: center;
     justify-content: center; margin-right: 12px; flex-shrink: 0;
 }
-.etape-titre {font-weight: 700;}
+.etape-titre {font-weight: 600; font-size: 0.95rem;}
 .etape-texte {font-size: 0.87rem; color: #6b7280;}
 
 /* ---------- Carte résultat ---------- */
 .res-haut {display: flex; align-items: center;}
 .res-emoji {font-size: 3.4rem; line-height: 1; margin-right: 16px;}
 .res-phrase {font-size: 0.95rem; color: #6b7280;}
-.res-classe {font-size: 2rem; font-weight: 800; margin: 0 0 6px 0; line-height: 1.1;}
+.res-classe {font-size: 1.8rem; font-weight: 800; margin: 0 0 6px 0; line-height: 1.1;}
 .res-badge {
     display: inline-block; color: #fff; font-size: 0.82rem; font-weight: 600;
     padding: 4px 12px; border-radius: 999px;
 }
 .res-bloc {
     background: #f9fafb; border-radius: 14px; padding: 12px 14px;
-    margin-top: 12px; font-size: 0.96rem;
+    margin-top: 12px; font-size: 0.95rem;
 }
 .res-bloc b {color: #111827;}
 .res-alerte {background: #fffbeb; border: 1px solid #fde68a;}
@@ -106,8 +137,8 @@ button[data-baseweb="tab"] {font-size: 1rem; font-weight: 600;}
 /* ---------- Guide des catégories ---------- */
 .cat {border-top: 6px solid #16a34a; height: 100%;}
 .cat-emoji {font-size: 2.2rem;}
-.cat-nom {font-weight: 800; font-size: 1.15rem; margin: 2px 0 8px 0;}
-.cat-texte {font-size: 0.93rem; margin-bottom: 8px;}
+.cat-nom {font-weight: 700; font-size: 1.15rem; margin: 2px 0 8px 0;}
+.cat-texte {font-size: 0.95rem; margin-bottom: 8px;}
 .cat-astuce {font-size: 0.85rem; color: #6b7280;}
 
 /* ---------- Photo arrondie ---------- */
@@ -319,26 +350,6 @@ def afficher_resultat(proba):
 
 
 # =====================================================
-# 7. BARRE LATÉRALE : SESSION
-# =====================================================
-with st.sidebar:
-    st.markdown("## ♻️ Smart Waste")
-    st.markdown("**📈 Ma session**")
-    total = sum(st.session_state["compteurs"].values())
-    if total == 0:
-        st.caption("Aucun déchet trié pour l'instant.")
-    else:
-        st.metric("Déchets triés", total)
-        for c in CLASSES:
-            n = st.session_state["compteurs"][c]
-            if n > 0:
-                st.markdown(f"- {INFOS[c]['emoji']} {INFOS[c]['nom']} : **{n}**")
-        if st.button("Réinitialiser", use_container_width=True):
-            st.session_state["compteurs"] = {c: 0 for c in CLASSES}
-            st.session_state["derniere_photo"] = ""
-            st.rerun()
-
-# =====================================================
 # 8. EN-TÊTE
 # =====================================================
 st.markdown(
@@ -347,8 +358,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-onglet_trier, onglet_guide, onglet_apropos = st.tabs(
-    ["♻️ Trier un déchet", "📚 Guide du tri", "ℹ️ À propos"]
+onglet_trier, onglet_guide, onglet_session, onglet_apropos = st.tabs(
+    ["♻️  Trier un déchet", "📚  Guide du tri", "📈  Ma session", "ℹ️  À propos"]
 )
 
 # =====================================================
@@ -420,6 +431,34 @@ with onglet_guide:
         st.write("")
 
 # =====================================================
+# 10 bis. ONGLET : MA SESSION
+# =====================================================
+with onglet_session:
+    st.markdown('<div class="zone-titre">Ma session</div>', unsafe_allow_html=True)
+    total = sum(st.session_state["compteurs"].values())
+    if total == 0:
+        st.markdown('<div class="carte">Aucun déchet trié pour l\'instant. '
+                    'Va dans « Trier un déchet » pour commencer.</div>', unsafe_allow_html=True)
+    else:
+        st.metric("Déchets triés", total)
+        barres = '<div class="carte">'
+        for c in sorted(CLASSES, key=lambda x: -st.session_state["compteurs"][x]):
+            n = st.session_state["compteurs"][c]
+            largeur = max(100 * n / total, 2) if n > 0 else 0
+            barres += (
+                f'<div class="ligne"><div class="ligne-nom">{INFOS[c]["emoji"]} {INFOS[c]["nom"]}</div>'
+                f'<div class="piste"><div class="remplissage" style="width:{largeur}%; '
+                f'background:{INFOS[c]["couleur"]};"></div></div>'
+                f'<div class="ligne-pct">{n}</div></div>'
+            )
+        barres += "</div>"
+        st.markdown(barres, unsafe_allow_html=True)
+        if st.button("🔄 Réinitialiser la session"):
+            st.session_state["compteurs"] = {c: 0 for c in CLASSES}
+            st.session_state["derniere_photo"] = ""
+            st.rerun()
+
+# =====================================================
 # 11. ONGLET 3 : À PROPOS
 # =====================================================
 with onglet_apropos:
@@ -448,3 +487,4 @@ st.markdown(
     "Je peux me tromper, en cas de doute vérifie l'emballage.</div>",
     unsafe_allow_html=True,
 )
+

@@ -29,7 +29,7 @@ Le papier et le carton sont les mieux reconnus. Le verre, le métal et le plasti
 - 2527 images au départ, **2524** après nettoyage (0 image corrompue, 3 doublons exacts supprimés).
 - Un dossier par classe ; le nom du dossier sert d'étiquette.
 - Classes déséquilibrées : `paper` 594 images, `trash` 137.
-- Source du dataset : kaggle.
+- Source du dataset : Garbage Classification – Kaggle.
 
 
 
